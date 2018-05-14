@@ -1,0 +1,14 @@
+/**/
+@include b(pf-main-layout) { 
+    height: 100%;
+}
+@include b(pf-nav){
+    background: $navBgColor;
+    width: $pfNavWidth;
+}
+.el-main{
+    &.pf-main{
+        padding:0px;
+        margin: 0px;
+    }
+}
