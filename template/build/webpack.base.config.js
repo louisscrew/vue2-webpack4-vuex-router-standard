@@ -8,18 +8,27 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+function resolve (dir) {
+  return path.join(__dirname, '..', dir)
+}
+
+
 const webpackConfig = {
-    entry:'./src/main.js',
+    entry: {
+        main: ['babel-polyfill','./src/main.js']
+    },
     output:{
         path:config.webpack.outputPath, 
-        filename:'[name].js',
+        filename: '[name].[hash:8].js',
+        libraryTarget: 'umd',
     },
     resolve:{
         modules: [
             "node_modules"
         ],
         alias: {
-            'vue$': 'vue/dist/vue.common.js'
+            'vue$': 'vue/dist/vue.common.js',
+            '@': resolve('src')
         },
         extensions:[".js",".json",".jsx",".css",'.vue']
     },
@@ -28,13 +37,11 @@ const webpackConfig = {
             {
                 test:/\.js$/,
                 exclude:/(node_modules|bower_components)/,
-                use:{
-                    loader:'babel-loader',
-                    options:{
-                        presets:['env'],
-                        plugins:['transform-runtime']
-                    }
-                }
+                // include: [resolve('src'), resolve('test')],
+                // enforce: 'pre',
+                use:[{
+                    loader:'babel-loader'
+                }]
             },
             {
                 test:/\.vue$/
@@ -122,8 +129,10 @@ const webpackConfig = {
     },
     plugins:[
         new VueLoaderPlugin(),
-        new HtmlWebpackPlugin({template:'./src/index.html'}),
-        new webpack.HotModuleReplacementPlugin(),
+        new HtmlWebpackPlugin({
+            template:'./src/index.html',
+            inject: true // true->'head' || false->'body'
+        }),
         new ExtractTextPlugin('./css/[name].css')
     ]
 }
