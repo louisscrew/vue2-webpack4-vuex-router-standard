@@ -1,7 +1,7 @@
 {
-  "name": "all-mgr",
-  "description": "all managment",
-  "author": "foor",
+  "name": "{{name}}",
+  "description": "{{description}}",
+  "author": "{{author}}",
   "version": "1.0.0",
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack-dev-server --hot --inline --progress --config build/webpack.dev.conf.js",
