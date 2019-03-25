@@ -5,7 +5,8 @@ const config = require('../config');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 // html插件
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-
+// 拷贝插件
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 // 使用happypack
 const HappyPack = require('happypack');
 const os = require('os');
@@ -33,9 +34,7 @@ module.exports = {
 		],
 		alias: {
 			'vue$': 'vue/dist/vue.esm.js',
-			'@': resolve('src'),
-			'jquery': 'lib/jquery/jquery.min.js',
-			'webuploader': 'lib/uploader/webuploader.js'//上传插件
+			'@': resolve('src')
 		},
 		extensions: ['.js', '.vue', '.json']
 	},
@@ -50,12 +49,20 @@ module.exports = {
             },
             {
                 test: /\.vue$/,
-                loader: 'vue-loader',
+				loader: 'vue-loader',
+				options: {
+					cacheBusting:false,
+					postcss: [require('postcss-cssnext')()]
+				}
             },
             {
                 test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
                 loader: 'url-loader',
-            },
+			},
+			{
+                test: /\.xhtml$/,
+                loader: 'html-loader'
+            }
         ],
     },
     plugins: [
@@ -80,6 +87,14 @@ module.exports = {
 		new HtmlWebpackPlugin({
 			filename: config.build.index,
 			template: './src/index.html'
-		})
+		}),
+		// copy custom static assets
+		new CopyWebpackPlugin([
+			{
+				from: path.resolve(__dirname, '../src/appConfig.js'),
+				to: config.build.assetsRoot,
+				ignore: ['.*']
+			}
+		])
 	]
 }

@@ -1,16 +1,15 @@
-<style scoped lang="less">
-
-</style>
 <template>
-    <div id="app">
-        hello world
+    <div class="am-page">
+        <router-view></router-view>
     </div>
 </template>
+
 <script>
+
 export default {
     name: 'app',
-    data() {
-        return {};
+    data(){
+        return {}
     }
-};
+}
 </script>

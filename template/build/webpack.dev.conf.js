@@ -2,14 +2,13 @@ const merge = require('webpack-merge');
 const common = require('./webpack.base.config.js');
 const path = require('path');
 const config = require('../config');
-
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HOST = process.env.HOST
 const PORT = process.env.PORT && Number(process.env.PORT)
 
 module.exports = merge(common, {
-    devtool: 'inline-source-map',
     mode: 'development',
-    
+    devtool: config.build.devtool,
     devServer: {
         clientLogLevel: 'warning',
 		historyApiFallback: {
@@ -54,7 +53,7 @@ module.exports = merge(common, {
                 ],
             },
             {
-                test: /\.(png|svg|jpg|gif)$/,
+                test: /\.(png|svg|jpg|gif|jpeg)$/,
                 use: [
                     {
                         loader: 'file-loader',
@@ -66,5 +65,15 @@ module.exports = merge(common, {
                 ],
             },
         ],
-    }
+    },
+    plugins: [
+        // copy custom static assets
+		new CopyWebpackPlugin([
+			{
+				from: path.resolve(__dirname, '../public'),
+				to: config.dev.assetsSubDirectory,
+				ignore: ['.*']
+			}
+		])
+    ]
 });

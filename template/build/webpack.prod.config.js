@@ -3,6 +3,7 @@ const path = require('path');
 const config = require('../config');
 const merge = require('webpack-merge');
 const common = require('./webpack.base.config.js');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 // 打包之前清除文件
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 // 压缩CSS插件
@@ -10,13 +11,11 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 // 压缩CSS和JS代码
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-// html插件
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = merge(common, {
     mode: 'production',
     output: {
 		path: config.build.assetsRoot,
-		filename: '[name].js',
+		filename: '[name].[chunkhash].js',
 		publicPath: config.build.assetsPublicPath
 	},
     devtool: config.build.productionSourceMap ? config.build.devtool : false,
@@ -106,7 +105,14 @@ module.exports = merge(common, {
             // both options are optional
             filename: 'css/[name].[hash].css',
             chunkFilename: 'css/[id].[hash].css',
-        })
+        }),
+        new CopyWebpackPlugin([
+			{
+				from: path.resolve(__dirname, '../public'),
+				to: config.build.assetsSubDirectory,
+				ignore: ['.*']
+			}
+		])
     ]
     
 });
