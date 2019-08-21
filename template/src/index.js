@@ -1,13 +1,13 @@
 import Vue from 'vue';
+import router from '@/app/router';
+import store from '@/app/store';
 import App from '@/App.vue';
-//引用router
-import { router } from '@/app/router/router.js';
-//样式引用
-import '@/static/theme.scss';
+//加载样式
+import '@/static/index.scss';
 
-//声明实例
-window.app = new Vue({
+new Vue({
     el: '#app',
     router,
+    store,
     render: h => h(App)
 });
