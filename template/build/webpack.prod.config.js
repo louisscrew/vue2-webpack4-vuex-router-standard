@@ -1,118 +1,88 @@
-const path = require('path');
-// 合并配置文件
-const config = require('../config');
-const merge = require('webpack-merge');
-const common = require('./webpack.base.config.js');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-// 打包之前清除文件
-const CleanWebpackPlugin = require('clean-webpack-plugin');
-// 压缩CSS插件
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-// 压缩CSS和JS代码
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-module.exports = merge(common, {
+'use strict'
+const path = require('path')
+const utils = require('./utils')
+const config = require('./config')
+const merge = require('webpack-merge')
+const baseWebpackConfig = require('./webpack.base.config')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssTextPlugin = require('mini-css-extract-plugin')
+const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
+
+
+
+const webpackConfig = merge(baseWebpackConfig, {
     mode: 'production',
-    output: {
-		path: config.build.assetsRoot,
-		filename: '[name].[chunkhash].js',
-		publicPath: config.build.assetsPublicPath
-	},
+    module: {
+        rules: utils.styleLoaders({
+            sourceMap: config.build.productionSourceMap,
+            extract: true,
+            usePostCSS: true
+        })
+    },
     devtool: config.build.productionSourceMap ? config.build.devtool : false,
+    output: {
+        path: config.build.assetsRoot,
+        filename: utils.assetsPath('[name].[chunkhash].js'),
+        chunkFilename: '[name].[chunkhash].js'
+    },
     optimization: {
-        // 分离chunks
         splitChunks: {
-            chunks: 'all',
+            chunks: 'async',
+            name: true,
             cacheGroups: {
+                common: {
+                    name: 'common',
+                    chunks: 'initial',
+                    minChunks: 2
+                },
                 vendor: {
                     name: 'vendor',
                     test: /[\\/]node_modules[\\/]/,
-                    priority: 10,
-                    chunks: 'initial' // 只打包初始时依赖的第三方
-                },
-            },
-        },
-        minimizer: [
-            new UglifyJsPlugin({
-                uglifyOptions: {
-                    compress: {
-                        warnings: false,
-                        drop_debugger: true,
-                        drop_console: true,
-                    },
-                },
-                cache: true,
-                parallel: true,
-                sourceMap: false, // set to true if you want JS source maps
-            }),
-            new OptimizeCSSAssetsPlugin({}),
-        ],
-    },
-    module: {
-        rules: [
-            {
-                test: /\.(sa|sc|c)ss$/,
-                use: [
-                    {
-                        loader: MiniCssExtractPlugin.loader,
-                        options: {
-                            // you can specify a publicPath here
-                            // by default it use publicPath in webpackOptions.output
-                            publicPath: '../',
-                        },
-                    },
-                    'css-loader',
-                    'postcss-loader',
-                    'sass-loader',
-                ],
-            },
-            {
-                test: /\.less$/,
-                use: [
-                    {
-                        loader: MiniCssExtractPlugin.loader,
-                        options: {
-                            // you can specify a publicPath here
-                            // by default it use publicPath in webpackOptions.output
-                            publicPath: '../',
-                        },
-                    },
-                    'css-loader',
-                    'postcss-loader',
-                    'less-loader',
-                ],
-            },
-            {
-                test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
-                use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            limit: 5000,
-                            name: 'imgs/[hash].[ext]',
-                        },
-                    }
-                ],
-            },
-        ],
+                    chunks: 'all'
+                }
+            }
+        }
     },
     plugins: [
-        new CleanWebpackPlugin(['dist/*'], {
-            root: path.resolve(__dirname, '../'),
+        // extract css into its own file
+        new MiniCssTextPlugin({
+            filename: utils.assetsPath('css/[name].[contenthash].css')
         }),
-        new MiniCssExtractPlugin({
-            // Options similar to the same options in webpackOptions.output
-            // both options are optional
-            filename: 'css/[name].[hash].css',
-            chunkFilename: 'css/[id].[hash].css',
+        // Compress extracted CSS. We are using this plugin so that possible
+        // duplicated CSS from different components can be deduped.
+        new OptimizeCSSPlugin({
+            cssProcessorOptions: config.build.productionSourceMap ? {
+                safe: true,
+                map: {
+                    inline: false
+                }
+            } : {
+                safe: true
+            }
         }),
-        new CopyWebpackPlugin([
-			{
-				from: path.resolve(__dirname, '../public'),
-				to: config.build.assetsSubDirectory,
-				ignore: ['.*']
-			}
-		])
+
+        new HtmlWebpackPlugin({
+            filename: path.join(config.build.assetsRoot, `index.html`),
+            template: './src/index.html',
+            chunksSortMode: 'dependency'
+        }),
+
+        //拷贝插件
+        new CopyWebpackPlugin([{
+                from: path.resolve(__dirname, '../src/AppConfig.js'),
+                to: config.build.assetsRoot,
+                ignore: ['.*']
+            },
+            {
+                from: path.resolve(__dirname, '../public'),
+                to: config.assetsSubDirectory,
+                ignore: ['.*']
+            }
+        ])
     ]
-    
-});
+})
+
+
+
+module.exports = webpackConfig

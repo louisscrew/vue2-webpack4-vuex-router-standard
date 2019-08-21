@@ -1,33 +1,20 @@
+'use strict'
+const utils = require('./utils')
 const webpack = require('webpack');
 const path = require('path');
-const config = require('../config');
-// vue-loader 插件
-const VueLoaderPlugin = require('vue-loader/lib/plugin');
-// html插件
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-// 拷贝插件
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-// 使用happypack
-const HappyPack = require('happypack');
-const os = require('os');
-const happyThreadPool = HappyPack.ThreadPool({ size: os.cpus().length });
-
+const config = require('./config')
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 function resolve(dir) {
 	return path.join(__dirname, '..', dir)
 }
 
 module.exports = {
-    context: path.resolve(__dirname, '../'),
-    entry: {
-		build: ['babel-polyfill','./src/index.js']
-	},
-    output: {
-		path: config.build.assetsRoot,
-		filename: '[name].js',
-		publicPath: config.dev.assetsPublicPath
-	},
-    resolve: {
+	entry: {
+        index: './src/index.js'
+    },
+	context: path.resolve(__dirname, '../'),
+	resolve: {
 		modules: [
 			"node_modules",
 			resolve('src')
@@ -39,62 +26,50 @@ module.exports = {
 		extensions: ['.js', '.vue', '.json']
 	},
 	module: {
-        rules: [
-            {
-                test: /\.js$/,
-                //把对.js 的文件处理交给id为happyBabel 的HappyPack 的实例执行
-                loader: 'happypack/loader?id=happyBabel',
-                //排除node_modules 目录下的文件
-                exclude: /node_modules/,
-            },
-            {
-                test: /\.vue$/,
-				loader: 'vue-loader',
-				options: {
-					cacheBusting:false,
-					postcss: [require('postcss-cssnext')()]
+		rules: [{
+			test: /\.js$/,
+			loader: 'babel-loader',
+			include: [resolve('src'), resolve('node_modules/webpack-dev-server/client')]
+		}, {
+			test: /\.vue$/,
+			loader: 'vue-loader',
+			options: {
+				transformAssetUrls: {
+					video: ['src', 'poster'],
+					source: 'src',
+					img: 'src',
+					image: 'xlink:href'
 				}
-            },
-            {
-                test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
-                loader: 'url-loader',
-			},
-			{
-                test: /\.xhtml$/,
-                loader: 'html-loader'
-            }
-        ],
-    },
-    plugins: [
-        new VueLoaderPlugin(),
-		new HappyPack({
-			//用id来标识 happypack处理那里类文件
-			id: 'happyBabel',
-			//如何处理  用法和loader 的配置一样
-			loaders: [{
-				test: /\.js$/,
-				loader: 'babel-loader',
-				include: [resolve('src'), resolve('node_modules/webpack-dev-server/client')]
-			}],
-			//共享进程池
-			threadPool: happyThreadPool,
-			//允许 HappyPack 输出日志
-			verbose: true,
-		}),
-        // 解决vender后面的hash每次都改变
-        new webpack.HashedModuleIdsPlugin(),
-		//处理html
-		new HtmlWebpackPlugin({
-			filename: config.build.index,
-			template: './src/index.html'
-		}),
-		// copy custom static assets
-		new CopyWebpackPlugin([
-			{
-				from: path.resolve(__dirname, '../src/appConfig.js'),
-				to: config.build.assetsRoot,
-				ignore: ['.*']
 			}
-		])
+		}, {
+			test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
+			loader: 'url-loader',
+			options: {
+				limit: 10000,
+				name: utils.assetsPath('img/[name].[hash:7].[ext]')
+			}
+		}, {
+			test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
+			loader: 'url-loader',
+			options: {
+				limit: 10000,
+				name: utils.assetsPath('media/[name].[hash:7].[ext]')
+			}
+		}, {
+			test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+			loader: 'url-loader',
+			options: {
+				limit: 10000,
+				name: utils.assetsPath('fonts/[name].[hash:7].[ext]')
+			}
+		}, {
+			test: /\.xhtml$/,
+			loader: 'html-loader'
+		}]
+	},
+	plugins: [
+		new VueLoaderPlugin(),
+		// 解决vender后面的hash每次都改变
+		new webpack.HashedModuleIdsPlugin()
 	]
 }
